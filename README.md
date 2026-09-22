@@ -19,16 +19,15 @@ The paper uses a Bartik-style instrument constructed from 1985–2000 baseline m
 ### Main Analysis File
 
 - **`Data_analysis_paper_only_v4.do`** — Paper-only Stata replication script (Stata 14.1+)
-  - Generates all tables and figures except those produced outside Stata (listed below)
+  - Generates all tables and figures except the maps
   - Contains 7 main sections covering descriptive, reduced-form, and IV analyses
 
 ### What This File Does NOT Contain
 
 - Sections 1–4 of the full replication pipeline (auxiliary dataset construction, panel assembly, Bartik baseline calculation)
   - *Starts from:* `panel_replication.dta` (pre-constructed)
-- Figures 4–6 (thematic maps: total affected families, environmental hazards, baseline mining)
-- Figure A1 (sample-construction flowchart)
-- Table A3 (municipality composition table)
+- Thematic maps: total affected families, environmental hazards, baseline mining)
+- Sample-construction flowchart)
 - Tables 7 and A5 (hand-typed summaries)
 
 ## Software Requirements
