@@ -51,10 +51,10 @@
                                          binscatter_dose_response{,2,3}.pdf
 
  
-===========================================================================*/
+*===========================================================================*/
 set more off
 set scheme s1color
-global out    " " /// ADD HERE THE DIRECTORY WHERE THE FILE IS SAVED
+global out    "H:\My Drive\Pesquisa\Publishing\World Deve - Amazon Gold\R&R\Replication\Production" /// ADD HERE THE DIRECTORY WHERE THE FILE IS SAVED
 
  
 /*=========================================================================== 
@@ -75,7 +75,7 @@ by ouro_ever2, sort: sum mb_total_km2 mb_garimpo_km2 mb_industrial_km2 mb_gold_k
 by ouro_ever, sort: sum mb_total_km2 mb_garimpo_km2 mb_industrial_km2 mb_gold_km2, d
 
 * Table A2, column "Full sample" (also Table A1, Panel A/B)
-sum taxa_homicidio_geral fam num_con mb_total_km2 accum_atv_km2 lbartik_garimpo_2000
+sum taxa_homicidio_geral fam num_con mb_total_km2 accum_atv_km2 lbartik_garimpo_2000 lbartik_gold_2000 lbartik_garimpo_1995 lbartik_gold_1995 lbartik_garimpo_1990 lbartik_gold_1990 lbartik_garimpo_1985 lbartik_gold_1985
 
 * Table A1 - full analytical sample
 sum pop count_total_empregados renda_media accum_atv_km2 prop_unids prop_indig mb_total_km2 mb_garimpo_km2 mb_industrial_km2 mb_gold_km2 empregos_pc amazonia_legal ouro_ever2 ever_conflict
@@ -144,42 +144,7 @@ scatter cont2 var_mb_total_km2 if var_mb_total_km2>=0,               graphregion
 graph export "f6_brl_mining_mb.pdf", replace
 
 
-/* --- 2b. Figure A4: MapBiomas mining trends ------------------------------ */
-cd "$out"
-clear
-use panel_replication
-xtset codmun ano
-
-keep if max_extra > 0
-
-collapse (rawsum) mb_total_km2 mb_garimpo_km2 mb_industrial_km2       ///
-                  mb_gold_km2 accum_atv_km2 , by(ano)
-cd "$out"
-line mb_total_km2 mb_garimpo_km2 mb_industrial_km2 mb_gold_km2 accum_atv_km2 ano if ano<=2020,   ///
-    legend(label(1 "Total") label(2 "Garimpo")                         ///
-           label(3 "Industrial") label(4 "Gold") label(5 "ANM-registered Mining Area"))                      ///
-    xtitle("Year") ytitle("Total area (ha)")       // labels only: legend was "Authorized Mining Area", axis was km²
-graph export "ts_mapbiomas_mining.pdf", replace
-
-
-/* --- 2c. Figures A2, A3: baseline share histograms ----------------------- */
-cd "$out"
-clear
-use panel_replication
-xtset codmun ano
-
-keep if max_extra > 0
-
-foreach k in gold garimpo {
-    foreach y in 1985 1990 1995 2000 {
-        sum base_`k'_sh_`y' if base_`k'_sh_`y' > 0
-        hist base_`k'_sh_`y' if base_`k'_sh_`y' > 0, ///
-            bin(40) graphregion(color(white)) ///
-            xtitle("Baseline share: `k' (`y')") ytitle("Frequency")
-        graph export "hist_share_`k'_`y'.pdf", replace
-    }
-}
-
+ 
 
 /*===========================================================================
   3. REDUCED-FORM REGRESSIONS
@@ -540,10 +505,56 @@ outreg2 using "pretrend_leads.xls", replace addtext(Municipality FE, Yes, Year F
 coefplot, keep(bartik_m5 bartik_m4 bartik_m3 bartik_m2 bartik_m1) ///
     vertical yline(0, lpattern(dash) lcolor(gray)) ///
     ciopts(recast(rcap)) msymbol(O) mcolor(navy) lcolor(navy) ///
-    xtitle("Periods ahead (placebo)") ytitle("Coefficient on Bartik") ///
+    xtitle("Future Prices") ytitle("Coefficient on Bartik") ///
     xlabel(1 "t+5" 2 "t+4" 3 "t+3" 4 "t+2" 5 "t+1") ///
     graphregion(color(white)) xsize(6) ysize(4)
 graph export "coefplot_pretrends.pdf", replace
+
+
+
+cd "$out"
+clear
+use panel_replication
+xtset codmun ano
+
+gen bartik = lbartik_gold_2000
+
+* Leads (F1 ... F5 of the Bartik)
+gen bartik_m1 = L1.bartik
+gen bartik_m2 = L2.bartik
+gen bartik_m3 = L3.bartik
+gen bartik_m4 = L4.bartik
+gen bartik_m5 = L5.bartik
+
+* Labels: X periods ahead   (label only: v3 used the event-study notation t-X)
+label variable bartik_m1 "t-1"
+label variable bartik_m2 "t-2"
+label variable bartik_m3 "t-3"
+label variable bartik_m4 "t-4"
+label variable bartik_m5 "t-5"
+
+* TABLE A6 (+ Figure A5): five leads jointly, with joint F-test
+reghdfe taxa_homicidio_geral ///
+    bartik_m5 bartik_m4 bartik_m3 bartik_m2 bartik_m1 ///
+    lpop empregos_pc, ///
+    absorb(codmun ano) cluster(codmun)
+
+test bartik_m5 bartik_m4 bartik_m3 bartik_m2 bartik_m1
+local Fj = r(F)
+local pj = r(p)
+cd "$out"
+outreg2 using "pretrend_lags.xls", replace addtext(Municipality FE, Yes, Year FE, Yes) ///
+    addstat(Joint F-test, `Fj', Joint F-test p-value, `pj')
+
+coefplot, keep(bartik_m5 bartik_m4 bartik_m3 bartik_m2 bartik_m1) ///
+    vertical yline(0, lpattern(dash) lcolor(gray)) ///
+    ciopts(recast(rcap)) msymbol(O) mcolor(navy) lcolor(navy) ///
+    xtitle("Past Prices") ytitle("Coefficient on Bartik") ///
+    xlabel(1 "t-5" 2 "t-4" 3 "t-3" 4 "t-2" 5 "t-1") ///
+    graphregion(color(white)) xsize(6) ysize(4)
+graph export "coefplot_pretrends_lags.pdf", replace
+
+
 
 
 * TABLE A7: placebo using the future BRL gold price (t+3)
@@ -597,6 +608,12 @@ coefplot, keep(lbartik_placebo_f2 lbartik_placebo_f3 ///
     xlabel(1 "t+2" 2 "t+3" 3 "t+4" 4 "t+5") ///
     graphregion(color(white)) xsize(6) ysize(4)
 graph export "coefplot_placebo_future.pdf", replace
+
+
+
+
+
+
 
 
 /*===========================================================================
