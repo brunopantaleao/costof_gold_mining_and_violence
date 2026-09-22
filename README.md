@@ -11,9 +11,8 @@ This repository contains the Stata replication code for "The Cost of Gold: Commo
 The paper uses a Bartik-style instrument constructed from 1985–2000 baseline mining shares and international gold price fluctuations to isolate exogenous variation in mining exposure. We document that:
 
 - Gold price booms, amplified by local mining intensity, significantly increase homicides and agrarian land conflicts
-- Effects are heterogeneous: larger impacts on non-White and female-headed households
-- Results hold across multiple robustness checks, including pre-trend tests, placebo specifications, and extreme-value trimming
-- Mechanisms operate through both criminal infrastructure and resource appropriation
+- Effects are heterogeneous: larger impacts on non-White, younger, and male individuals
+- Results hold across multiple robustness checks, including value-shifts tests, placebo specifications, and extreme-value trimming
 
 ## Contents
 
