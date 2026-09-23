@@ -54,7 +54,8 @@
 *===========================================================================*/
 set more off
 set scheme s1color
-global out    "H:\My Drive\Pesquisa\Publishing\World Deve - Amazon Gold\R&R\Replication\Production" /// ADD HERE THE DIRECTORY WHERE THE FILE IS SAVED
+global out "C:\Users\USUARIO\Dropbox\Pesquisa\Publishing\World Deve - Amazon Gold\R&R\Replication\Production" 
+/// ADD HERE THE DIRECTORY WHERE THE FILE IS SAVED
 
  
 /*=========================================================================== 
@@ -158,6 +159,10 @@ cd "$out"
 clear
 use panel_replication
 
+by codmun, sort: egen mean_mb = mean(mb_total_km2)
+
+
+
 /* --- 3a. TABLE 1: baseline-year sensitivity (1985, 1990, 1995, 2000) ------
    Panels = outcomes (homicide rate / affected families / agrarian conflicts);
    columns = baseline year; one file per Bartik type.
@@ -192,15 +197,14 @@ foreach trt in  lbartik_gold_2000  lbartik_garimpo_2000 {
 /* --- 3c. TABLE 2: heterogeneity of the garimpo Bartik (2000 baseline) -------
    Panel A (age) and Panel B (race): xtreg with municipality FE (as in v3).
    Panel C (gender): reghdfe, municipality + year FE (as in v3).              */
-xtset codmun ano
 
 * Panel B: race
 foreach trt in lbartik_garimpo_2000 {
     foreach z in taxa_homicidio_branca taxa_homicidio_preta_parda taxa_homicidio_indigena {
         sum `z' if mb_total_km2 == 0
         local Cm = r(mean)
-        xtreg `z' `trt' lpop empregos_pc, fe cluster(codmun)
-        outreg2 using "`trt'_raça.xls", append addstat(Control Mean, `Cm')
+        reghdfe `z' `trt' lpop empregos_pc,  absorb(codmun ano) cluster(codmun)
+        outreg2 using "reghdfe_`trt'_raça.xls", append addstat(Control Mean, `Cm')
     }
 }
 
@@ -209,37 +213,14 @@ foreach trt in lbartik_garimpo_2000 {
     foreach z in taxa_homicidio_0013 taxa_homicidio_1429 taxa_homicidio_3039 taxa_homicidio_4059 taxa_homicidio_60mais {
         sum `z' if mb_total_km2 == 0
         local Cm = r(mean)
-        xtreg `z' `trt' lpop empregos_pc, fe cluster(codmun)
-        outreg2 using "`trt'_idade.xls", append addstat(Control Mean, `Cm')
+        reghdfe  `z' `trt' lpop empregos_pc, absorb(codmun ano) cluster(codmun)
+        outreg2 using "reghdfe_`trt'_idade.xls", append addstat(Control Mean, `Cm')
     }
 }
 
-* Panel C: gender  (Data: painel_mortes_genero.dta)
-cd "$out"
-clear
-use panel_replication
-
-
-* Collapse to one obs per codmun-ano (sum across age groups)
-collapse (sum) homem mulher, by(codmun ano)
-merge 1:1 codmun ano using panel_replication, keepusing(populacao lpop empregos_pc ///
-    lbartik_gold_2000 lbartik_garimpo_2000 mb_total_km2 amazonia_legal ///
-    ouro_ever2 laccum_atv_km2)
-drop if _merge == 2
-drop _merge
-
-gen taxa_homic_homem  = (homem  / populacao) * 100000
-gen taxa_homic_mulher = (mulher / populacao) * 100000
-label variable taxa_homic_homem  "Male homicide rate per 100k"
-label variable taxa_homic_mulher "Female homicide rate per 100k"
-
-drop if laccum_atv_km2==.
-drop if codmun==.
-drop if lbartik_gold_2000==.
-drop if lbartik_garimpo_2000==.
 
 foreach trt in lbartik_garimpo_2000 {
-    foreach z in taxa_homic_homem taxa_homic_mulher {
+    foreach z in tx_homic_homem tx_homic_mulher {
         sum `z' if mb_total_km2 == 0
         local Cm = r(mean)
         reghdfe `z' `trt' lpop empregos_pc, absorb(codmun ano) cluster(codmun)
@@ -247,6 +228,28 @@ foreach trt in lbartik_garimpo_2000 {
             addtext(Municipality FE, Yes, Year FE, Yes)
     }
 }
+
+
+
+
+/* --- MAPBIOMAS CITIES ONLY                 */
+foreach y in 1985 1990 1995 2000 {
+    foreach trt in gold garimpo {
+        foreach z in taxa_homicidio_geral lfam lconf {
+            sum `z' if lbartik_`trt'_`y' == 0 & mean_mb >0
+            local Cm = r(mean)
+            reghdfe `z' lbartik_`trt'_`y' lpop empregos_pc if mean_mb>0, ///
+                absorb(codmun ano) cluster(codmun)
+            outreg2 using "rf_baseline_mb_only_robustness_`trt'.xls", append ///
+                addstat(Control Mean, `Cm') ///
+                addtext(Municipality FE, Yes, Year FE, Yes, ///
+                        Baseline Year, `y')
+        }
+    }
+}
+
+
+
 
 
 /* --- 3d. TABLE 3: RF by geological gold occurrence (SGB) and ANM gold registry
