@@ -1,4 +1,4 @@
-# The Cost of Gold: Commodity Shocks and Violence Against Peasants in Brazil
+# The Cost of Gold: Mining Booms, Violence, and Agrarian Conflict in Brazil
 
 **Sofia Amaral** (Harvard Kennedy School), **Bruno Pantaleão** (FGV-Analytics), **Daniel Rio Tinto** (FGV-RI)
 
@@ -6,13 +6,10 @@
 
 This repository contains the Stata replication code for "The Cost of Gold: Commodity Shocks and Violence Against Peasants in Brazil." The paper investigates how international gold price shocks, transmitted via local mining exposure, affect homicide rates, agrarian conflicts, and peasant displacement in Brazil.
 
-## Key Results
+## Abstract
 
-The paper uses a Bartik-style instrument constructed from 1985–2000 baseline mining shares and international gold price fluctuations to isolate exogenous variation in mining exposure. We document that:
-
-- Gold price booms, amplified by local mining intensity, significantly increase homicides and agrarian land conflicts
-- Effects are heterogeneous: larger impacts on non-White, younger, and male individuals
-- Results hold across multiple robustness checks, including value-shifts tests, placebo specifications, and extreme-value trimming
+Commodity booms can generate social costs, particularly where institutions are weak. We examine whether higher gold prices are associated with mining expansion, violence, and agrarian conflict in Brazilian municipalities during 2001--2019. A shift-share (Bartik) design combines predetermined municipal exposure to gold mining with international gold prices and exchange rates, to recover the effects of mining incentives on mining expansion and violence. Price-induced exposure expands artisanal (_garimpo_) and gold mining, measured using remote sensing. In our preferred specifications, a one-standard deviation increase in the _garimpo_ Bartik is associated with a 36\% increase in homicides. Agrarian-conflict estimates are positive but less precise. _Garimpo-_based homicide effects concentrate where gold occurrences are geologically recorded and are similar in cities where gold extraction is formally registered. We find that _ garimpo_ exposure is more strongly associated with lethal violence, while gold-mining exposure is more closely associated with agrarian conflicts and affected families. These patterns are consistent with mining expansion being an important channel through which gold-price shocks affect local social conflict.
+ 
 
 ## Contents
 
@@ -122,7 +119,6 @@ This dataset should contain:
 - Log transformations use: `ln(1 + x)` for outcomes with zeros
 - Standard errors are clustered at the municipality level throughout
 - All specifications include municipality and year fixed effects (unless otherwise noted)
-- Pre-trend tests span 1991–2003; main sample is 2004–2019
 
 ## Contact
 
